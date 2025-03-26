@@ -1,0 +1,73 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 94a529d7..ca01f683 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -432,9 +432,9 @@ elseif (GPU_LANG STREQUAL "OPENACC")
+    string (APPEND CMAKE_CXX_FLAGS " --diag_suppress=11,177")
+    # Compute Capability 60,70 -> ,cc60,cc70
+    set (__T9_ACC_CCLST4) # ""
+-   foreach (var ${T9_CUCCLIST})
+-      string (APPEND __T9_ACC_CCLST4 ",cc${var}")
+-   endforeach () # ,cc60,cc70
++   #foreach (var ${T9_CUCCLIST})
++   #   string (APPEND __T9_ACC_CCLST4 ",cc${var}")
++   #endforeach () # ,cc60,cc70
+ endif ()
+ 
+ 
+diff --git a/cmake/device.cmake b/cmake/device.cmake
+index 80f0e953..389fc7fe 100644
+--- a/cmake/device.cmake
++++ b/cmake/device.cmake
+@@ -1,11 +1,11 @@
+ if (GPU_LANG STREQUAL "OPENACC")
+    set (__T9_EXTRA_LINK_FLAGS
+       -acc
+-      -Mcudalib=cufft,cublas
+-      "$<$<CONFIG:DEBUG>:-ta=tesla:lineinfo${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:RELWITHDEBINFO>:-ta=tesla:lineinfo,fastmath${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:RELEASE>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:MINSIZEREL>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
++      -cudalib=cufft,cublas
++      #"$<$<CONFIG:DEBUG>:-ta=tesla:lineinfo${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:RELWITHDEBINFO>:-ta=tesla:lineinfo,fastmath${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:RELEASE>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:MINSIZEREL>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
+    )
+    set (__T9_ACC_LIB_STR tinker9_acc)
+ # elseif (GPU_LANG STREQUAL "CUDA")
+diff --git a/src/acc/CMakeLists.txt b/src/acc/CMakeLists.txt
+index dcb4d4a0..00970c70 100644
+--- a/src/acc/CMakeLists.txt
++++ b/src/acc/CMakeLists.txt
+@@ -22,9 +22,13 @@ elseif (GPU_LANG STREQUAL "OPENACC")
+    ## Debug add flag: -ta=tesla:lineinfo,cc60,cc70
+    ## Release add flag: -ta=tesla:fastmath,cc60,cc70
+    target_compile_options (tinker9_acc PUBLIC
+-      "$<$<CONFIG:DEBUG>:-ta=tesla:lineinfo${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:RELWITHDEBINFO>:-ta=tesla:lineinfo,fastmath${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:RELEASE>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
+-      "$<$<CONFIG:MINSIZEREL>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
++      "$<$<CONFIG:DEBUG>:-acc -gpu"
++      "$<$<CONFIG:RELWITHDEBINFO>:-acc -gpu"
++      "$<$<CONFIG:RELEASE>:-acc -gpu"
++      "$<$<CONFIG:MINSIZEREL>:-acc -gpu"
++      #"$<$<CONFIG:DEBUG>:-ta=tesla:lineinfo${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:RELWITHDEBINFO>:-ta=tesla:lineinfo,fastmath${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:RELEASE>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
++      #"$<$<CONFIG:MINSIZEREL>:-ta=tesla:fastmath${__T9_ACC_CCLST4}>"
+    )
+ endif ()
+diff --git a/src/cudart/gpucard.cpp b/src/cudart/gpucard.cpp
+index d1dd8d50..6ed4e7c1 100644
+--- a/src/cudart/gpucard.cpp
++++ b/src/cudart/gpucard.cpp
+@@ -131,7 +131,7 @@ static void getDeviceAttribute(DeviceAttribute& a, int device = 0)
+    // 3.0 3.5 3.7: 192
+    if (a.cc > 90)
+       found_cc = false;
+-   else if (a.cc >= 90)
++   else if (a.cc >= 86)
+       a.cores_per_multiprocessor = 128;
+    else if (a.cc >= 80)
+       a.cores_per_multiprocessor = 64;
